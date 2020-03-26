@@ -13,15 +13,11 @@ class CommonHomeScreen(object):
         self.get_shop_by_category()
 
     def get_shop_by_category(self):
-        return WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,
+        return WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR,
                                                                          self.config.get(self.section,
                                                                                          'shop_by_category'))))
 
-    def click_shop_by_category(self):
-        self.get_shop_by_category().click()
-
     def click_shop_by_category_accessories(self, category):
-        self.click_shop_by_category()
+        self.get_shop_by_category().click()
         selector = self.config.get(self.section, 'category_left_menu').replace('<replace>', category)
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
-
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()

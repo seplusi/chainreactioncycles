@@ -21,4 +21,5 @@ class AccessoriesScreen():
 
     def click_item_left_menu(self, item_name):
         selector = self.config.get(self.section, 'item_left_menu').replace('<replace>', item_name)
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
