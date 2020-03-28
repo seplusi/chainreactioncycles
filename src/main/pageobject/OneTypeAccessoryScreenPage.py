@@ -18,6 +18,7 @@ class OneTypeAccessoryScreen(object):
             (By.CSS_SELECTOR, self.config.get(self.section, 'accessories_breadcrumb'))))
 
         if not ' '.join([element.text for element in elements]) == 'Home > %s' % breadcrum_sub_path:
+            print(' '.join([element.text for element in elements]))
             raise Exception
 
     def get_page_heading(self):
@@ -85,6 +86,7 @@ class OneTypeAccessoryScreen(object):
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.rating-star.rating-%d' % stars))).click()
 
     def validate_your_choices(self, list_choices):
+        # Validate the refinement choices
         for _ in range(2):
             elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'your_choices_list'))))
             if len(elements) == len(list_choices):
@@ -107,13 +109,23 @@ class OneTypeAccessoryScreen(object):
         return True
 
     def validate_number_items_showing(self):
+        # Validate the string of how many items are being shown.
         element = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, self.config.get(self.section, 'nr_items_showing'))))
 
         element_txt_values = element.text.split(' ')
-        if element_txt_values[0] == 'Showing' and element_txt_values[2] == 'items' and element_txt_values[1].isnumeric():
-            return True
+        if len(element_txt_values) == 6:
+            results_lst = ['Showing', True, '-', True, 'of', True]
+        else:
+            results_lst = ['Showing', True, 'items']
 
-        return False
+        list_result = []
+        for item in element_txt_values:
+            if item.isnumeric():
+                list_result.append(True)
+            else:
+                list_result.append(item)
+
+        return list_result == results_lst
 
     def sort_price_low_to_high(self):
         WebDriverWait(self.driver, 10).until(
@@ -123,6 +135,7 @@ class OneTypeAccessoryScreen(object):
             EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'price_low_to_high')))).click()
 
     def check_items_are_sorted_by_low_to_high_price(self):
+        # Get all items prices and validate they are sorted by price
         result = False
         elements = WebDriverWait(self.driver, 10).until(
             EC.visibility_of_all_elements_located((By.CLASS_NAME, self.config.get(self.section, 'all_items_price'))))
@@ -143,6 +156,8 @@ class OneTypeAccessoryScreen(object):
 
     def validate_number_items_correct(self):
         result = False
+
+        # Get the number of items in "Showing NR items"
         element = WebDriverWait(self.driver, 10).until(
             EC.visibility_of_element_located((By.CLASS_NAME, self.config.get(self.section, 'nr_items_showing'))))
 
@@ -151,16 +166,30 @@ class OneTypeAccessoryScreen(object):
         else:
             number_items = int(element.text.split(' ')[1])
 
+        # Some items appear but without a price and "Currently Unavailable" instead. Get these ones
+        nr_unavailable_prices = 0
+        try:
+            bundle_mgss =  WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, 'bundle_msg')))
+            if bundle_mgss:
+                for msg in bundle_mgss:
+                    if msg.text == 'Currently Unavailable':
+                        nr_unavailable_prices = nr_unavailable_prices + 1
+        except TimeoutException:
+            pass
+
+        # Verify the numbers match
         all_items = WebDriverWait(self.driver, 10).until(
             EC.visibility_of_all_elements_located((By.CLASS_NAME, self.config.get(self.section, 'all_items_price'))))
-        if number_items == len(all_items):
+        if number_items == len(all_items) + nr_unavailable_prices:
             result = True
         else:
             print([element.text.replace('£', '') for element in all_items])
+            print('Expected number of items=%d. Real number of elements=%d' % (number_items, len(all_items)))
 
         return result
 
-    def number_items_in_showing(self):
+    def total_number_items(self):
+        # Get the number of items in "Showing NR items" or "Showing 1 - 48 of NR"
         element = WebDriverWait(self.driver, 10).until(
             EC.visibility_of_element_located((By.CLASS_NAME, self.config.get(self.section, 'nr_items_showing'))))
 
@@ -172,12 +201,13 @@ class OneTypeAccessoryScreen(object):
         return number_items
 
     def get_nr_items_per_page(self):
+        # Get active number items per page. Top right hand corner
         value = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section, 'active_nr_items_per_page')))).text
 
         return int(value)
 
     def get_pagination_elements(self, nr_items_p_page):
-        nr_selected_items = self.number_items_in_showing()
+        nr_selected_items = self.total_number_items()
 
         if nr_items_p_page > nr_selected_items:
             return False
@@ -185,11 +215,14 @@ class OneTypeAccessoryScreen(object):
         return WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, 'div.pagination > a')))
 
     def search_for_item_and_click(self, item_name):
-
+        # Get number items per page
         nr_items_p_page = self.get_nr_items_per_page()
+
+        # Get number of pages from bottom right hand corner
         nr_pages = self.get_pagination_elements(nr_items_p_page)
 
         if nr_pages:
+            # If multiple pages exist then go thought them
             for page_nr in range(len(nr_pages) - 1):
                 for num in range(3):
                     all_items = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'search_all_items'))))
@@ -200,11 +233,10 @@ class OneTypeAccessoryScreen(object):
                 else:
                     print('Could not find %d items' % nr_items_p_page)
 
-                if item_name in [item.text for item in all_items]:
+                if item_name.lower() in [item.text.lower() for item in all_items]:
                     break
                 else:
                     self.get_pagination_elements(nr_items_p_page)[page_nr + 1].click()
 
         selector = self.config.get(self.section, 'search_item_with_name').replace('<replace>', 'Components-Saddles-%s' % item_name)
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
-

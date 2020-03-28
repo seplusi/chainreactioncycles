@@ -11,6 +11,14 @@ class SelectedItemScreen():
         self.section = driver.section
         self.ignored_exceptions = (StaleElementReferenceException, ElementClickInterceptedException,)
         self.title = title
+        self._validate_breadcrumb(title)
+
+    def _validate_breadcrumb(self, title):
+        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(
+            (By.CSS_SELECTOR, self.config.get(self.section, 'accessories_breadcrumb'))))
+
+        if not ' '.join([element.text for element in elements]) == 'Home > Components > Saddles > %s' % title:
+            raise Exception
 
     def get_item_page_title(self):
         element = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(
