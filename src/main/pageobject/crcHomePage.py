@@ -1,7 +1,8 @@
-from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException, TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException, TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import time
 
 
 class HomeScreen(object):
@@ -47,10 +48,36 @@ class HomeScreen(object):
             EC.visibility_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'item_search_result'))))
 
         for element in elements:
-            if element.text == item_name:
+            if element.text.lower() == item_name.lower():
                 break
         else:
             print([element.text for element in elements])
             raise Exception
 
         element.click()
+
+    def expand_see_all_results_search(self, text):
+        element = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'see_all_results'))))
+
+        if element.text == 'See all results for \'%s\'' % text:
+            element.click()
+        else:
+            print('wrong text: %s' % element.text)
+            raise Exception
+
+    def click_sign_in(self):
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'sign_in_top_menu')))).click()
+
+    def validate_login_text(self):
+        element = None
+        for _ in range(10):
+            try:
+                element = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'heather_welcome')))).text
+                return element
+            except NoSuchElementException:
+                time.sleep(0.5)
+        else:
+            print('heather_welcome text is %s' % element)
+            raise Exception

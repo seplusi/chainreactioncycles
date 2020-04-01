@@ -6,6 +6,7 @@ from src.main.pageobject.crcAccessoriesPage import AccessoriesScreen
 from src.main.pageobject.OneTypeAccessoryScreenPage import OneTypeAccessoryScreen
 from src.main.pageobject.crcItemPage import SelectedItemScreen
 from src.main.pageobject.searchResultPage import searchResultScreen
+from src.main.pageobject.crcSingInPage import SignInScreen
 
 
 class ChainReactionCycles(unittest.TestCase):
@@ -81,7 +82,7 @@ class ChainReactionCycles(unittest.TestCase):
         self.saddles.sort_price_low_to_high()
         self.saddles.search_for_item_and_click('PROLOGO T-GALE PAS Tirox Rail Saddle')
 
-        assert SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-GALE PAS Tirox Rail Saddle').get_item_page_title() == 'PROLOGO T-GALE PAS Tirox Rail Saddle'
+        assert SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-GALE PAS Tirox Rail Saddle', 'Home > Components > Saddles >').get_item_page_title() == 'PROLOGO T-GALE PAS Tirox Rail Saddle'
 
 #    @unittest.skip('')
     def test_search_saddles_from_only_1_page(self):
@@ -99,7 +100,7 @@ class ChainReactionCycles(unittest.TestCase):
         self.saddles.sort_price_low_to_high()
         self.saddles.search_for_item_and_click('PROLOGO T-GALE PAS Tirox Rail Saddle')
 
-        assert SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-GALE PAS Tirox Rail Saddle').get_item_page_title() == 'PROLOGO T-GALE PAS Tirox Rail Saddle'
+        assert SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-GALE PAS Tirox Rail Saddle', 'Home > Components > Saddles >').get_item_page_title() == 'PROLOGO T-GALE PAS Tirox Rail Saddle'
 
 #    @unittest.skip('')
     def test_selected_item_page(self):
@@ -109,8 +110,27 @@ class ChainReactionCycles(unittest.TestCase):
         result = searchResultScreen(self.driver, self.config_obj.config, 'Search Results for "prologo t-gale pas tirox saddle"')
         result.click_item('PROLOGO T-Gale PAS Tirox Saddle')
 
-        item = SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-Gale PAS Tirox Saddle')
+        item = SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-Gale PAS Tirox Saddle', 'Home > Components > Saddles >')
         assert item.get_item_page_title() == 'PROLOGO T-Gale PAS Tirox Saddle'
+
+#    @unittest.skip('')
+    def test_search_without_narrow_search(self):
+        self.homepage.type_text_in_search_box('garmin')
+        self.homepage.expand_see_all_results_search('garmin')
+
+        result = searchResultScreen(self.driver, self.config_obj.config, 'Garmin')
+        OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Garmin').sort_price_low_to_high()
+        OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Garmin').search_for_item_and_click('Garmin Fenix 6 Pro Multisport GPS Watch')
+
+        item = SelectedItemScreen(self.driver, self.config_obj.config, 'Garmin Fenix 6 Pro Multisport GPS Watch', 'Home > Nutrition & Training > GPS >')
+        assert item.get_item_page_title() == 'Garmin Fenix 6 Pro Multisport GPS Watch'
+
+#    @unittest.skip('')
+    def test_perform_login(self):
+        self.homepage.click_sign_in()
+        sign_in = SignInScreen(self.driver, self.config_obj.config, 'Sign in', 'Home >')
+        sign_in.perform_login('seplusi_arcanjo@hotmail.com', '12qwaszx')
+        assert self.homepage.validate_login_text() == 'Hello Luis'
 
     def tearDown(self):
         self.take_snapshot_if_failure()

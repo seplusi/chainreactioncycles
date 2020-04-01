@@ -230,11 +230,13 @@ class OneTypeAccessoryScreen(object):
         return WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, 'div.pagination > a')))
 
     def search_for_item_and_click(self, item_name):
-        # Get number items per page
-        nr_items_p_page = self.get_nr_items_per_page()
+        nr_pages = None
+        if self.total_number_items() > 24:
+            # Get number items per page
+            nr_items_p_page = self.get_nr_items_per_page()
 
-        # Get number of pages from bottom right hand corner
-        nr_pages = self.get_pagination_elements(nr_items_p_page)
+            # Get number of pages from bottom right hand corner
+            nr_pages = self.get_pagination_elements(nr_items_p_page)
 
         if nr_pages:
             # If multiple pages exist then go thought them
@@ -253,5 +255,5 @@ class OneTypeAccessoryScreen(object):
                 else:
                     self.get_pagination_elements(nr_items_p_page)[page_nr + 1].click()
 
-        selector = self.config.get(self.section, 'search_item_with_name').replace('<replace>', 'Components-Saddles-%s' % item_name)
+        selector = self.config.get(self.section, 'search_item_with_name').replace('<replace>', '-%s' % item_name)
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
