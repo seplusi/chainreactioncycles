@@ -3,22 +3,29 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+import time
 
 
 class OneTypeAccessoryScreen(object):
     def __init__(self, driver, config, breadcrum_sub_path):
         self.driver = driver.instance
+        self.drv_obj = driver
         self.config = config
         self.section = driver.section
         self.ignored_exceptions = (StaleElementReferenceException, ElementClickInterceptedException, ElementNotVisibleException, )
         self._validate_breadcrumb(breadcrum_sub_path)
 
-    def _validate_breadcrumb(self, breadcrum_sub_path):
-        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(
-            (By.CSS_SELECTOR, self.config.get(self.section, 'accessories_breadcrumb'))))
+    def _validate_breadcrumb(self, breadcrum_sub_path, timeout=10):
+        for _ in range(timeout):
+            elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(
+                (By.CSS_SELECTOR, self.config.get(self.section, 'accessories_breadcrumb'))))
 
-        if not ' '.join([element.text for element in elements]) == 'Home > %s' % breadcrum_sub_path:
-            print(' '.join([element.text for element in elements]))
+            if not ' '.join([element.text for element in elements]) == 'Home > %s' % breadcrum_sub_path:
+                print('Breadcrumb not set yet. Has value: %s' % ' '.join([element.text for element in elements]))
+                time.sleep(1)
+            else:
+                break
+        else:
             raise Exception
 
     def get_page_heading(self):
@@ -40,7 +47,13 @@ class OneTypeAccessoryScreen(object):
 
         # Select brand
         selector = self.config.get(self.section, 'select_brand').replace('<replace>', item_brand)
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, selector)))
+        for element in elements:
+            if element.text.split('(')[0].strip() == item_brand:
+                element.click()
+                break
+        else:
+            raise Exception
 
         # Move to discipline selection
         action = ActionChains(self.driver)
@@ -51,39 +64,41 @@ class OneTypeAccessoryScreen(object):
         selector = self.config.get(self.section, 'clicked_select_brand').replace('<replace>', item_brand)
         WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
-    def click_refinements(self, option_text):
-        for _ in range(2):
-            try:
-                elements = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'all_refine_elements'))))
+    def select_gender(self, type):
+        selector = self.config.get(self.section, 'select_gender').replace('<replace>', type)
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
 
-                for element in elements:
-                    if option_text in element.text:
-                        break
-
-                element.click()
-                break
-            except ElementNotVisibleException:
-                print('%s not visible' % option_text )
-                pass
+        selector = self.config.get(self.section, 'clicked_select_gender').replace('<replace>', type)
+        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
     def select_discipline(self, option_text):
         # Click discipline
         selector = self.config.get(self.section, 'select_discipline').replace('<replace>', option_text)
-        print(selector)
         WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
         WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
 
         # Move to discipline selection
-        action = ActionChains(self.driver)
-        element = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
-        action.move_to_element(element).perform()
+        self.drv_obj.move_to_element(selector)
 
         # Verify that discipline is selected
         selector = self.config.get(self.section, 'clicked_select_discipline').replace('<replace>', option_text)
         WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
     def select_rating(self, stars):
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.rating-star.rating-%d' % stars))).click()
+        selector = self.config.get(self.section, 'select_rating').replace('<replace>', str(stars))
+        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+
+        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section, 'your_choices_4'))))
+
+    def select_stock(self):
+        # Click instock
+        WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'select_instock')))).click()
+
+        # Verify instock
+        WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section, 'clicked_selected_instock'))))
 
     def validate_your_choices(self, list_choices):
         # Validate the refinement choices

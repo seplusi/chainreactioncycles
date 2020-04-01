@@ -33,16 +33,16 @@ class AccessoriesScreen():
         for _ in range(2):
             selector = self.config.get(self.section, 'item_left_menu').replace('<replace>', item_name)
             try:
+                time.sleep(1)
                 elelemtn = WebDriverWait(self.driver, 10).until(
-                    EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.popular_categories_list.fl > ul > li.popular_categories_product > p > a[onclick*=\'Nutrition & Training-GPS\']')))
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
+                self.driver.execute_script("arguments[0].setAttribute('style', arguments[1]);", elelemtn, "background: yellow; border: 2px solid red;")
 
-                print(elelemtn.text)
                 elelemtn.click()
                 break
-            except Exception as E:
+            except ElementClickInterceptedException:
                 time.sleep(1)
                 print('Other element other than GPS would be clicked. Going to try again')
-                raise E
                 pass
         else:
             raise Exception

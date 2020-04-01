@@ -2,7 +2,6 @@ from selenium.common.exceptions import StaleElementReferenceException, ElementCl
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-import time
 
 
 class HomeScreen(object):
@@ -11,7 +10,6 @@ class HomeScreen(object):
         self.config = config
         self.section = driver.section
         self.ignored_exceptions = (StaleElementReferenceException, ElementClickInterceptedException,)
-        self.get_shop_by_category()
 
     def type_text_in_search_box(self, text):
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.ID, 'auto_search'))).send_keys(text)
@@ -30,6 +28,19 @@ class HomeScreen(object):
         selector = self.config.get(self.section, 'category_left_menu').replace('<replace>', category)
         WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+
+        # Make sure category was expanded
+        for _ in range(2):
+            try:
+                WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, 'li.level.level1.active_category > span')))
+                break
+            except TimeoutException:
+                print('Category %s wasn\'t successfully clicked. Going for another stab' % category)
+                WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+        else:
+            raise Exception
 
     def click_specific_item_from_search(self, item_name):
         elements = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
