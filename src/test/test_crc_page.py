@@ -64,6 +64,7 @@ class ChainReactionCycles(unittest.TestCase):
 
         self.gps.sort_price_low_to_high()
         assert self.gps.check_items_are_sorted_by_low_to_high_price()
+        assert self.gps.check_items_are_sorted_by_low_to_high_price()
         assert self.gps.validate_number_items_correct()
 
 #    @unittest.skip('')
@@ -129,7 +130,7 @@ class ChainReactionCycles(unittest.TestCase):
     def test_perform_login(self):
         self.homepage.click_sign_in()
         sign_in = SignInScreen(self.driver, self.config_obj.config, 'Sign in', 'Home >')
-        sign_in.perform_login('seplusi_arcanjo@hotmail.com', '12qwaszx')
+        sign_in.perform_login('seplusi_arcanjo@hotmail.com', 'xxxx')
         assert self.homepage.validate_login_text() == 'Hello Luis'
 
     def tearDown(self):
