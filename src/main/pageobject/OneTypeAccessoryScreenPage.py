@@ -3,30 +3,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-import time
+from src.main.common.commonPage import CommonClass
 
 
-class OneTypeAccessoryScreen(object):
-    def __init__(self, driver, config, breadcrum_sub_path):
-        self.driver = driver.instance
+class OneTypeAccessoryScreen(CommonClass):
+    def __init__(self, driver, config, title, breadcrumb_sub_path):
+        super().__init__(driver, config, title, breadcrumb_sub_path)
         self.drv_obj = driver
-        self.config = config
-        self.section = driver.section
         self.ignored_exceptions = (StaleElementReferenceException, ElementClickInterceptedException, ElementNotVisibleException, )
-        self._validate_breadcrumb(breadcrum_sub_path)
-
-    def _validate_breadcrumb(self, breadcrum_sub_path, timeout=10):
-        for _ in range(timeout):
-            elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(
-                (By.CSS_SELECTOR, self.config.get(self.section, 'accessories_breadcrumb'))))
-
-            if not ' '.join([element.text for element in elements]) == 'Home > %s' % breadcrum_sub_path:
-                print('Breadcrumb not set yet. Has value: %s' % ' '.join([element.text for element in elements]))
-                time.sleep(1)
-            else:
-                break
-        else:
-            raise Exception
+        self._validate_breadcrumb()
+        self.validate_heading()
 
     def get_page_heading(self):
         return WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(
@@ -34,7 +20,8 @@ class OneTypeAccessoryScreen(object):
 
     def _click_see_more_brands(self):
         try:
-            WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'item_see_more')))).click()
+            WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, self.config.get(self.section, 'item_see_more')))).click()
         except TimeoutException:
             return
 
@@ -47,7 +34,8 @@ class OneTypeAccessoryScreen(object):
 
         # Select brand
         selector = self.config.get(self.section, 'select_brand').replace('<replace>', item_brand)
-        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, selector)))
+        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR,
+                                                                                               selector)))
         for element in elements:
             if element.text.split('(')[0].strip() == item_brand:
                 element.click()
@@ -57,12 +45,14 @@ class OneTypeAccessoryScreen(object):
 
         # Move to discipline selection
         action = ActionChains(self.driver)
-        element = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        element = WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
         action.move_to_element(element).perform()
 
         # Verify that discipline is selected
         selector = self.config.get(self.section, 'clicked_select_brand').replace('<replace>', item_brand)
-        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
     def select_gender(self, type):
         selector = self.config.get(self.section, 'select_gender').replace('<replace>', type)
@@ -74,22 +64,26 @@ class OneTypeAccessoryScreen(object):
     def select_discipline(self, option_text):
         # Click discipline
         selector = self.config.get(self.section, 'select_discipline').replace('<replace>', option_text)
-        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
-        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
 
         # Move to discipline selection
         self.drv_obj.move_to_element(selector)
 
         # Verify that discipline is selected
         selector = self.config.get(self.section, 'clicked_select_discipline').replace('<replace>', option_text)
-        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+        WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
     def select_rating(self, stars):
         selector = self.config.get(self.section, 'select_rating').replace('<replace>', str(stars))
         WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
 
-        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section, 'your_choices_4'))))
+        WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((
+            By.CSS_SELECTOR, self.config.get(self.section, 'your_choices_4'))))
 
     def select_stock(self):
         # Click instock
@@ -98,15 +92,19 @@ class OneTypeAccessoryScreen(object):
 
         # Verify instock
         WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section, 'clicked_selected_instock'))))
+            EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section,
+                                                                               'clicked_selected_instock'))))
 
     def validate_your_choices(self, list_choices):
         # Validate the refinement choices
         for _ in range(2):
-            elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'your_choices_list'))))
+            elements = WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_all_elements_located((By.CSS_SELECTOR,
+                                                       self.config.get(self.section, 'your_choices_list'))))
             if len(elements) == len(list_choices):
                 break
-            print('Searching again for choices. Got %s and should have %s' % (str([element.text for element in elements]), str(list_choices)))
+            print('Searching again for choices. Got %s and should have %s'
+                  % (str([element.text for element in elements]), str(list_choices)))
         else:
             raise Exception
 
@@ -125,7 +123,8 @@ class OneTypeAccessoryScreen(object):
 
     def validate_number_items_showing(self):
         # Validate the string of how many items are being shown.
-        element = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, self.config.get(self.section, 'nr_items_showing'))))
+        element = WebDriverWait(self.driver, 10).until(
+            EC.visibility_of_element_located((By.CLASS_NAME, self.config.get(self.section, 'nr_items_showing'))))
 
         element_txt_values = element.text.split(' ')
         if len(element_txt_values) == 6:
@@ -184,7 +183,8 @@ class OneTypeAccessoryScreen(object):
         # Some items appear but without a price and "Currently Unavailable" instead. Get these ones
         nr_unavailable_prices = 0
         try:
-            bundle_mgss =  WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, 'bundle_msg')))
+            bundle_mgss =  WebDriverWait(self.driver, 10).until(
+                EC.visibility_of_all_elements_located((By.CLASS_NAME, 'bundle_msg')))
             if bundle_mgss:
                 for msg in bundle_mgss:
                     if msg.text == 'Currently Unavailable':
@@ -217,7 +217,8 @@ class OneTypeAccessoryScreen(object):
 
     def get_nr_items_per_page(self):
         # Get active number items per page. Top right hand corner
-        value = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self.config.get(self.section, 'active_nr_items_per_page')))).text
+        value = WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((
+            By.CSS_SELECTOR, self.config.get(self.section, 'active_nr_items_per_page')))).text
 
         return int(value)
 
@@ -227,7 +228,8 @@ class OneTypeAccessoryScreen(object):
         if nr_items_p_page > nr_selected_items:
             return False
 
-        return WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, 'div.pagination > a')))
+        return WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((
+            By.CSS_SELECTOR, self.config.get(self.section, 'get_number_pages'))))
 
     def search_for_item_and_click(self, item_name):
         nr_pages = None
@@ -242,7 +244,8 @@ class OneTypeAccessoryScreen(object):
             # If multiple pages exist then go thought them
             for page_nr in range(len(nr_pages) - 1):
                 for num in range(3):
-                    all_items = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'search_all_items'))))
+                    all_items = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((
+                        By.CSS_SELECTOR, self.config.get(self.section, 'search_all_items'))))
                     if len(all_items) == nr_items_p_page:
                         break
                     else:

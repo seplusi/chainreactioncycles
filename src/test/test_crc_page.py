@@ -26,10 +26,10 @@ class ChainReactionCycles(unittest.TestCase):
     def test_sunglases(self):
         self.homepage.click_shop_by_category_accessories('accessories')
 
-        self.accessories_page = AccessoriesScreen(self.driver, self.config_obj.config, 'Accessories')
+        self.accessories_page = AccessoriesScreen(self.driver, self.config_obj.config, 'Accessories', 'Home >')
         self.accessories_page.click_item_left_menu('sunglasses')
 
-        self.sunglasses = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Accessories > Sunglasses')
+        self.sunglasses = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Sunglasses', 'Home > Accessories >')
         assert self.sunglasses.get_page_heading().text == 'Sunglasses'
 
         self.sunglasses.select_stock()
@@ -48,31 +48,31 @@ class ChainReactionCycles(unittest.TestCase):
     def test_gps(self):
         self.homepage.click_shop_by_category_accessories('nutrition-training')
 
-        self.accessories_page = AccessoriesScreen(self.driver, self.config_obj.config, 'Nutrition & Training')
+        self.accessories_page = AccessoriesScreen(self.driver, self.config_obj.config, 'Nutrition & Training', 'Home >')
         self.accessories_page.click_item_left_menu('gps')
 
-        self.gps = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Nutrition & Training > GPS')
-        assert self.gps.get_page_heading().text == 'GPS'
+        gps = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'GPS', 'Home > Nutrition & Training >')
+        assert gps.get_page_heading().text == 'GPS'
 
-        self.gps.select_stock()
-        self.gps.select_discipline('City')
-        self.gps.select_rating(4)
-        self.gps.select_brand('Garmin')
+        gps.select_stock()
+        gps.select_discipline('City')
+        gps.select_rating(4)
+        gps.select_brand('Lezyne')
 
-        assert self.gps.validate_your_choices(['City', 'In Stock Only', 'Garmin', '& Up'])
-        assert self.gps.validate_number_items_showing()
+        assert gps.validate_your_choices(['City', 'In Stock Only', 'Lezyne', '& Up'])
+        assert gps.validate_number_items_showing()
 
-        self.gps.sort_price_low_to_high()
-        assert self.gps.check_items_are_sorted_by_low_to_high_price()
-        assert self.gps.check_items_are_sorted_by_low_to_high_price()
-        assert self.gps.validate_number_items_correct()
+        gps.sort_price_low_to_high()
+        assert gps.check_items_are_sorted_by_low_to_high_price()
+        assert gps.check_items_are_sorted_by_low_to_high_price()
+        assert gps.validate_number_items_correct()
 
 #    @unittest.skip('')
     def test_search_saddles_from_multiple_pages(self):
         self.homepage.type_text_in_search_box('saddles')
         self.homepage.click_category_from_search('saddles')
 
-        self.saddles = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Components > Saddles')
+        self.saddles = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Saddles', 'Home > Components >')
         assert self.saddles.get_page_heading().text == 'Saddles'
 
         self.saddles.select_stock()
@@ -90,7 +90,7 @@ class ChainReactionCycles(unittest.TestCase):
         self.homepage.type_text_in_search_box('saddles')
         self.homepage.click_category_from_search('saddles')
 
-        self.saddles = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Components > Saddles')
+        self.saddles = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Saddles', 'Home > Components >')
         assert self.saddles.get_page_heading().text == 'Saddles'
 
         self.saddles.select_stock()
@@ -108,7 +108,7 @@ class ChainReactionCycles(unittest.TestCase):
         self.homepage.type_text_in_search_box('PROLOGO T-Gale PAS Tirox Saddle')
         self.homepage.click_specific_item_from_search('PROLOGO T-Gale PAS Tirox Saddle')
 
-        result = searchResultScreen(self.driver, self.config_obj.config, 'Search Results for "prologo t-gale pas tirox saddle"')
+        result = searchResultScreen(self.driver, self.config_obj.config, "prologo t-gale pas tirox saddle", 'Home >')
         result.click_item('PROLOGO T-Gale PAS Tirox Saddle')
 
         item = SelectedItemScreen(self.driver, self.config_obj.config, 'PROLOGO T-Gale PAS Tirox Saddle', 'Home > Components > Saddles >')
@@ -119,9 +119,9 @@ class ChainReactionCycles(unittest.TestCase):
         self.homepage.type_text_in_search_box('garmin')
         self.homepage.expand_see_all_results_search('garmin')
 
-        result = searchResultScreen(self.driver, self.config_obj.config, 'Garmin')
-        OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Garmin').sort_price_low_to_high()
-        OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Garmin').search_for_item_and_click('Garmin Fenix 6 Pro Multisport GPS Watch')
+        garmin = OneTypeAccessoryScreen(self.driver, self.config_obj.config, 'Garmin', 'Home >')
+        garmin.sort_price_low_to_high()
+        garmin.search_for_item_and_click('Garmin Fenix 6 Pro Multisport GPS Watch')
 
         item = SelectedItemScreen(self.driver, self.config_obj.config, 'Garmin Fenix 6 Pro Multisport GPS Watch', 'Home > Nutrition & Training > GPS >')
         assert item.get_item_page_title() == 'Garmin Fenix 6 Pro Multisport GPS Watch'
@@ -130,7 +130,7 @@ class ChainReactionCycles(unittest.TestCase):
     def test_perform_login(self):
         self.homepage.click_sign_in()
         sign_in = SignInScreen(self.driver, self.config_obj.config, 'Sign in', 'Home >')
-        sign_in.perform_login('seplusi_arcanjo@hotmail.com', 'xxxx')
+        sign_in.perform_login('seplusi_arcanjo@hotmail.com', 'XXXX')
         assert self.homepage.validate_login_text() == 'Hello Luis'
 
     def tearDown(self):

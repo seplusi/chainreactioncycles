@@ -1,30 +1,22 @@
-from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
+from src.main.common.commonPage import CommonClass
 import time
 
 
-class AccessoriesScreen():
-    def __init__(self, driver, config, title):
-        self.driver = driver.instance
-        self.config = config
-        self.section = driver.section
-        self.ignored_exceptions = (StaleElementReferenceException, ElementClickInterceptedException,)
+class AccessoriesScreen(CommonClass):
+    def __init__(self, driver, config, title, breadcrumb_path):
+        super().__init__(driver, config, title, breadcrumb_path)
         self._wait_for_loading_page()
-        self._validate_breadcrumb(title)
+        self._validate_breadcrumb()
 
     def _wait_for_loading_page(self):
-        WebDriverWait(self.driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'ul.brands-list')))
-
-    def _validate_breadcrumb(self, title):
-        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located(
-            (By.CSS_SELECTOR, self.config.get(self.section, 'accessories_breadcrumb'))))
-
-        if not ' '.join([element.text for element in elements]) == 'Home > %s' % title:
-            raise Exception
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_all_elements_located((By.CSS_SELECTOR, self.config.get(self.section, 'brand_list'))))
 
     def click_item_left_menu(self, item_name):
         action = ActionChains(self.driver)
@@ -46,5 +38,3 @@ class AccessoriesScreen():
                 pass
         else:
             raise Exception
-
-
