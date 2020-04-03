@@ -15,6 +15,16 @@ class HomeScreen(object):
     def type_text_in_search_box(self, text):
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.ID, 'auto_search'))).send_keys(text)
 
+    def get_search_items_list(self):
+        elements = WebDriverWait(self.driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, 'li.ui-menu-item > a > span')))
+
+        return [element.text for element in elements]
+
+    def click_see_all_results(self):
+        WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'span.see-all'))).click()
+
+
     def click_category_from_search(self, category):
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a[href^='/%s?']" % category))).click()
 

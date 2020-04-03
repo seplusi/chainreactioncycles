@@ -54,6 +54,18 @@ class OneTypeAccessoryScreen(CommonClass):
         WebDriverWait(self.driver, 10, ignored_exceptions=self.ignored_exceptions).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
 
+    def select_price_range(self, min=None, max=None):
+        if min:
+            WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((
+                By.CSS_SELECTOR, self.config.get(self.section, 'price_lower_vaule')))).send_keys(min)
+
+        if max:
+            WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((
+                By.CSS_SELECTOR, self.config.get(self.section, 'price_higher_value')))).send_keys(max)
+
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((
+            By.CSS_SELECTOR, self.config.get(self.section, 'click_go')))).click()
+
     def select_gender(self, type):
         selector = self.config.get(self.section, 'select_gender').replace('<replace>', type)
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
@@ -260,3 +272,7 @@ class OneTypeAccessoryScreen(CommonClass):
 
         selector = self.config.get(self.section, 'search_item_with_name').replace('<replace>', '-%s' % item_name)
         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector))).click()
+
+    def get_no_results_message(self):
+        return WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located(
+            (By.CSS_SELECTOR, self.config.get(self.section, 'no_results_message')))).text
